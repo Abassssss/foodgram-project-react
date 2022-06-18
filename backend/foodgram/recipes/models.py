@@ -5,8 +5,10 @@ from django.db.models.deletion import SET_NULL
 
 class Tag(models.Model):
     title = models.CharField("Название", max_length=20)
-    hex_code = models.CharField("hex_code", max_length=9)
-    slug = models.SlugField("slug")
+    color = models.CharField(
+        "Цвет", max_length=9, help_text="Цвет должен быть в 16х формате"
+    )
+    slug = models.SlugField("Slug")
 
 
 class IngredientAmount(models.TextChoices):
@@ -104,3 +106,55 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class RecipeInCart(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name="Пользователь",
+    )
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, verbose_name="Рецепт"
+    )
+
+
+class RecipeInFavorite(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name="Пользователь",
+    )
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, verbose_name="Рецепт"
+    )
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="follower",
+        verbose_name="подписчик",
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="following",
+        verbose_name="Автор",
+    )
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                name="unique_follow",
+                fields=("user", "author"),
+            ),
+            models.CheckConstraint(
+                name="prevent_self_follow",
+                check=~models.Q(user=models.F("author")),
+            ),
+        )
+
+    def __str__(self):
+        return f"{self.user} подписан на {self.author}"

@@ -1,47 +1,50 @@
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models.deletion import SET_NULL
 
 
 class Tag(models.Model):
-    title = models.CharField("Название", max_length=20)
+    name = models.CharField("Название", max_length=200)
     color = models.CharField(
-        "Цвет", max_length=9, help_text="Цвет должен быть в 16х формате"
+        "Цвет", max_length=7, help_text="Цвет должен быть в 16х формате"
     )
-    slug = models.SlugField("Slug")
+    slug = models.SlugField("Slug", max_length=200)
+
+    def __str__(self):
+        return self.name
 
 
 class IngredientAmount(models.TextChoices):
-    JAR = "банка"
-    LOAF = "батон"
-    BOTTLE = "бутылка"
-    BRANCH = "веточка"
-    GR = "г"
-    HANDFUL = "горсть"
-    SLICE = "долька"
-    STAR = "звездочка"
-    ZUB4IK = "зубчик"
-    DROP = "капля"
-    KG = "кг"
-    CHUNK = "кусок"
-    LITER = "л"
-    LEAF = "лист"
-    ML = "мл"
-    BAG = "пакет"
-    BAG2 = "пакетик"
-    PACKET = "пачка"
-    LAYER = "пласт"
-    BYTASTE = "по вкусу"
-    PU4OK = "пучок"
-    TABLE_SPOON = "ст. л."
-    GLASS = "стакан"
-    STEM = "стебель"
-    POD = "стручок"
-    CARCASS = "тушка"
-    PACKAGE = "упаковка"
-    TEA_SPOON = "ч. л."
-    PIECE = "шт."
-    PINCH = "щепотка"
+    JAR = ("банка", "банка")
+    LOAF = ("батон", "батон")
+    BOTTLE = ("бутылка", "бутылка")
+    BRANCH = ("веточка", "веточка")
+    GR = ("г", "г")
+    HANDFUL = ("горсть", "горсть")
+    SLICE = ("долька", "долька")
+    STAR = ("звездочка", "звездочка")
+    ZUB4IK = ("зубчик", "зубчик")
+    DROP = ("капля", "капля")
+    KG = ("кг", "кг")
+    CHUNK = ("кусок", "кусок")
+    LITER = ("л", "л")
+    LEAF = ("лист", "лист")
+    ML = ("мл", "мл")
+    BAG = ("пакет", "пакет")
+    BAG2 = ("пакетик", "пакетик")
+    PACKET = ("пачка", "пачка")
+    LAYER = ("пласт", "пласт")
+    BYTASTE = ("по вкусу", "по вкусу")
+    PU4OK = ("пучок", "пучок")
+    TABLE_SPOON = ("ст. л.", "ст. л.")
+    GLASS = ("стакан", "стакан")
+    STEM = ("стебель", "стебель")
+    POD = ("стручок", "стручок")
+    CARCASS = ("тушка", "тушка")
+    PACKAGE = ("упаковка", "упаковка")
+    TEA_SPOON = ("ч. л.", "ч. л.")
+    PIECE = ("шт.", "шт.")
+    PINCH = ("щепотка", "щепотка")
 
 
 class IngredientInRecipe(models.Model):
@@ -49,24 +52,30 @@ class IngredientInRecipe(models.Model):
     ingredient = models.ForeignKey(
         "recipes.Ingredient", on_delete=models.CASCADE
     )
-    amount = models.IntegerField("Колличество")
+    amount = models.IntegerField("Количество")
+
+    def __str__(self):
+        return str(self.ingredient)
 
 
 class Ingredient(models.Model):
-    title = models.CharField(
-        "Название", help_text="Введите название ингридиента", max_length=50
+    name = models.CharField(
+        "Название", help_text="Введите название ингридиента", max_length=200
     )
-    unit = models.CharField(
+    measurement_unit = models.CharField(
         "Единица измерения",
         help_text="Введите единицу измерения",
         choices=IngredientAmount.choices,
-        max_length=15,
+        max_length=200,
     )
+
+    def __str__(self):
+        return self.name
 
 
 class Recipe(models.Model):
-    title = models.CharField(
-        "Название", help_text="Введите название рецепта", max_length=50
+    name = models.CharField(
+        "Название", help_text="Введите название рецепта", max_length=200
     )
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
     author = models.ForeignKey(
@@ -82,30 +91,34 @@ class Recipe(models.Model):
         blank=True,
         help_text="Загрузите картинку",
     )
-    description = models.TextField(
-        "Описание", help_text="Введите описание рецепта"
-    )
-    ingridients = models.ManyToManyField(
+    text = models.TextField("Описание", help_text="Введите описание рецепта")
+    ingredients = models.ManyToManyField(
         Ingredient, through=IngredientInRecipe
     )
-    tag = models.ForeignKey(
+    tags = models.ManyToManyField(
         Tag,
-        blank=True,
-        null=True,
-        on_delete=SET_NULL,
-        related_name="recipes",
         verbose_name="Тэг",
-        help_text="Выберите тэг",
     )
-    cook_time = models.IntegerField("Время приготовления")
+    cooking_time = models.PositiveIntegerField(
+        "Время приготовления",
+        validators=(MinValueValidator(1),),
+        help_text="В минутах",
+    )
 
     class Meta:
         verbose_name = "Recipe"
         verbose_name_plural = "Recipes"
         ordering = ("-pub_date",)
 
+        constraints = (
+            models.CheckConstraint(
+                name="cooking_time",
+                check=models.Q(name__gte=1),
+            ),
+        )
+
     def __str__(self):
-        return self.title
+        return self.name
 
 
 class RecipeInCart(models.Model):

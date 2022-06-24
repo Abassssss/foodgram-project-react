@@ -1,5 +1,5 @@
 from django.contrib import admin
-from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag
+from recipes.models import Follow, Ingredient, IngredientInRecipe, Recipe, Tag
 
 
 class IngredientInRecipeInline(admin.TabularInline):
@@ -15,3 +15,4 @@ class RecipeAdmin(admin.ModelAdmin):
 admin.site.register(Ingredient)
 admin.site.register(IngredientInRecipe)
 admin.site.register(Tag)
+admin.site.register(Follow)

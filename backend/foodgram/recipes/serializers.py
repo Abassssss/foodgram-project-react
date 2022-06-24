@@ -15,30 +15,6 @@ from .models import (
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
-    is_subscribed = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = (
-            "email",
-            "id",
-            "username",
-            "first_name",
-            "last_name",
-            "is_subscribed",
-        )
-        ref_name = "ReadOnlyUsers"
-
-    def get_is_subscribed(self, user) -> bool | None:
-        request = self.context.get("request")
-
-        if request is None or request.user.is_anonymous:
-            return None
-
-        return Follow.objects.filter(user=request.user, author=user).exists()
-
-
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -68,7 +44,7 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    author = UserSerializer()
+    author = serializers.SerializerMethodField()
     tags = TagSerializer(many=True)
     ingredients = IngredientInRecipeSerializer(
         source="ingredientinrecipe_set", many=True
@@ -90,6 +66,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             "text",
             "cooking_time",
         )
+
+    def get_author(self, recipe):
+        return UserSerializer(recipe.author, omit=["recipes"]).data
 
     def get_is_favorited(self, recipe):
         request = self.context.get("request")
@@ -139,3 +118,40 @@ class FollowSerializer(serializers.ModelSerializer):
                 queryset=Follow.objects.all(), fields=["user", "following"]
             )
         ]
+
+
+class UserSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = RecipeSerializer(many=True, read_only=True)
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            "email",
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+            "recipes",
+            "recipes_count",
+        )
+        ref_name = "ReadOnlyUsers"
+
+    def __init__(self, *args, **kwargs):
+        omit = kwargs.pop("omit", [])
+        super().__init__(*args, **kwargs)
+        for field in omit:
+            del self.fields[field]
+
+    def get_recipes_count(self, user):
+        return user.recipes.count()
+
+    def get_is_subscribed(self, user) -> bool | None:
+        request = self.context.get("request")
+
+        if request is None or request.user.is_anonymous:
+            return None
+
+        return Follow.objects.filter(user=request.user, author=user).exists()

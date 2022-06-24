@@ -33,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, user) -> bool | None:
         request = self.context.get("request")
 
-        if request is None:
+        if request is None or request.user.is_anonymous:
             return None
 
         return Follow.objects.filter(user=request.user, author=user).exists()
@@ -92,11 +92,9 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, recipe):
-        print(recipe.ingredients.all())
-        print(recipe.ingredientinrecipe_set.all())
         request = self.context.get("request")
 
-        if request is None:
+        if request is None or request.user.is_anonymous:
             return None
 
         return RecipeInFavorite.objects.filter(
@@ -106,7 +104,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     def get_is_in_shopping_cart(self, recipe):
         request = self.context.get("request")
 
-        if request is None:
+        if request is None or request.user.is_anonymous:
             return None
 
         return RecipeInCart.objects.filter(

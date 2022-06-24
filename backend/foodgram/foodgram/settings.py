@@ -39,9 +39,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "django_filters",
+    "rest_framework.authtoken",  # 🦗
     "djoser",
+    "django_filters",
     "recipes",
+    "django_extensions",
 ]
 
 MIDDLEWARE = [
@@ -136,7 +138,18 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
+}
+
+DJOSER = {
+    "LOGIN_FIELD": "email",
+    "SERIALIZERS": {
+        "user": "recipes.serializers.UserSerializer",
+    }
+    # "PERMISSIONS": {"token_create": ["rest_framework.permissions.AllowAny"]},
 }

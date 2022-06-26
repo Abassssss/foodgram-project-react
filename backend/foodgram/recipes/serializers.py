@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -25,12 +26,14 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ("id", "name", "measurement_unit")
+        read_only_fields = ("name", "measurement_unit")
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source="ingredient.name")
+    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    name = serializers.CharField(source="ingredient.name", read_only=True)
     measurement_unit = serializers.CharField(
-        source="ingredient.measurement_unit"
+        source="ingredient.measurement_unit", read_only=True
     )
 
     class Meta:
@@ -41,11 +44,51 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
             "measurement_unit",
             "amount",
         )
+        read_only_fields = ("name", "measurement_unit")
+
+
+class RecipeCreateSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+    ingredients = IngredientInRecipeSerializer(many=True)
+
+    class Meta:
+        model = Recipe
+        fields = (
+            "tags",
+            "ingredients",
+            "name",
+            "image",
+            "text",
+            "cooking_time",
+        )
+
+    def create(self, validated_data):
+        tags_data = validated_data.pop("tags")
+        ingredients_data = validated_data.pop("ingredients")
+
+        recipe = Recipe.objects.create(**validated_data)
+        recipe.tags.set(tags_data)
+
+        ingredients = []
+        for ingredient in ingredients_data:
+            ingredients.append(
+                IngredientInRecipe(
+                    recipe=recipe,
+                    ingredient=ingredient["id"],
+                    amount=ingredient["amount"],
+                )  # 😢
+            )
+
+        IngredientInRecipe.objects.bulk_create(ingredients)
+
+        return recipe
 
 
 class RecipeSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
-    tags = TagSerializer(many=True)
+    tags = TagSerializer(
+        many=True,
+    )
     ingredients = IngredientInRecipeSerializer(
         source="ingredientinrecipe_set", many=True
     )
@@ -148,10 +191,15 @@ class UserSerializer(serializers.ModelSerializer):
     def get_recipes_count(self, user):
         return user.recipes.count()
 
-    def get_is_subscribed(self, user) -> bool | None:
+    def get_is_subscribed(self, user):
         request = self.context.get("request")
 
         if request is None or request.user.is_anonymous:
             return None
 
         return Follow.objects.filter(user=request.user, author=user).exists()
+
+
+# class RecipeInFavorite(serializers.ModelSerializer):
+#     model = RecipeInFavorite
+#     # fields =

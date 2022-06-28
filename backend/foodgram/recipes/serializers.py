@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
@@ -30,7 +31,10 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    # id = serializers.PrimaryKeyRelatedField(
+    #     queryset=IngredientInRecipe.objects.all()
+    # )
+    # id = serializers.IntegerField(source="ingredient.id")
     name = serializers.CharField(source="ingredient.name", read_only=True)
     measurement_unit = serializers.CharField(
         source="ingredient.measurement_unit", read_only=True
@@ -46,10 +50,20 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("name", "measurement_unit")
 
+    def validate_id(self, id_):
+        if not Ingredient.objects.filter(id=id_).exists():
+            raise serializers.ValidationError(
+                f'Ingredient with id "{id_}" does not exist.'
+            )
+        return id_
+
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
-    ingredients = IngredientInRecipeSerializer(many=True)
+    ingredients = IngredientInRecipeSerializer(
+        source="ingredientinrecipe_set",
+        many=True,
+    )
 
     class Meta:
         model = Recipe
@@ -64,24 +78,43 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         tags_data = validated_data.pop("tags")
-        ingredients_data = validated_data.pop("ingredients")
+        ingredients_data = validated_data.pop("ingredientinrecipe_set")
 
         recipe = Recipe.objects.create(**validated_data)
-        recipe.tags.set(tags_data)
-
         ingredients = []
         for ingredient in ingredients_data:
             ingredients.append(
                 IngredientInRecipe(
                     recipe=recipe,
-                    ingredient=ingredient["id"],
+                    ingredient=Ingredient.objects.get(id=ingredient["id"]),
                     amount=ingredient["amount"],
                 )  # 😢
             )
-
         IngredientInRecipe.objects.bulk_create(ingredients)
+        recipe.tags.set(tags_data)
 
         return recipe
+
+    def update(self, instance, validated_data):
+        tags_data = validated_data.pop("tags")
+        ingredients_data = validated_data.pop("ingredientinrecipe_set")
+
+        instance = super().update(instance, validated_data)
+        IngredientInRecipe.objects.filter(recipe=instance).delete()
+
+        ingredients = []
+        for ingredient in ingredients_data:
+            ingredients.append(
+                IngredientInRecipe(
+                    recipe=instance,
+                    ingredient=Ingredient.objects.get(id=ingredient["id"]),
+                    amount=ingredient["amount"],
+                )  # 😢
+            )
+        IngredientInRecipe.objects.bulk_create(ingredients)
+        instance.tags.set(tags_data)
+
+        return instance
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -161,6 +194,12 @@ class FollowSerializer(serializers.ModelSerializer):
                 queryset=Follow.objects.all(), fields=["user", "following"]
             )
         ]
+
+
+class CustomUserCreateSerializer(UserCreateSerializer):
+    class Meta(UserCreateSerializer.Meta):
+        model = User
+        fields = ("first_name", "last_name", "email", "username", "password")
 
 
 class UserSerializer(serializers.ModelSerializer):

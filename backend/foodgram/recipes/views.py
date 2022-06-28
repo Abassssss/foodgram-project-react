@@ -1,32 +1,50 @@
 from django.contrib.auth import get_user_model
+from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import Follow, Ingredient, Recipe, Tag
-from recipes.serializers import (IngredientSerializer, RecipeCreateSerializer,
-                                 RecipeSerializer, TagSerializer,
-                                 UserSerializer)
-from rest_framework import status, viewsets
+from recipes.serializers import (
+    IngredientSerializer,
+    RecipeCreateSerializer,
+    RecipeSerializer,
+    TagSerializer,
+    UserSerializer,
+)
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import (LimitOffsetPagination,
-                                       PageNumberPagination)
+from rest_framework.pagination import (
+    LimitOffsetPagination,
+    PageNumberPagination,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from .filters import RecipeFilter
+
 # from rest_framework.permissions import IsAuthenticated
+# 😢 😀 💯
+
+
+class MyPageNumberPagination(PageNumberPagination):
+    page_size_query_param = "limit"
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    pagination_class = LimitOffsetPagination
+    pagination_class = MyPageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if self.action == "create":
+        if (
+            self.action == "create"
+            or self.action == "partial_update"
+            or self.action == "update"
+        ):
             return RecipeCreateSerializer
         else:
             return RecipeSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-    # вуа зукащкь_скуфеу(ыудаб ыукшфдшяук)Ж
-        # ыукшфдшяукюыфму(фгерщк=ыудаюкуйгуыеюгыук)
 
 
 class TagViewSet(viewsets.ModelViewSet):

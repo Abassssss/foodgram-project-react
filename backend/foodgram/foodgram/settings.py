@@ -139,6 +139,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        # "rest_framework.authentication.SessionAuthentication",  # 👈 👀
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
@@ -150,6 +151,7 @@ DJOSER = {
     "LOGIN_FIELD": "email",
     "SERIALIZERS": {
         "user": "recipes.serializers.UserSerializer",
+        "user_create": "recipes.serializers.CustomUserCreateSerializer",
     }
     # "PERMISSIONS": {"token_create": ["rest_framework.permissions.AllowAny"]},
 }

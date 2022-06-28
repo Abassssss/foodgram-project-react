@@ -26,6 +26,14 @@ class TagAdmin(admin.ModelAdmin):
         )
 
 
-admin.site.register(Ingredient)
-admin.site.register(IngredientInRecipe)
+@admin.register(Ingredient)
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = ("name", "measurement_unit", "id")  # 5️⃣
+
+
+@admin.register(IngredientInRecipe)
+class IngredientInRecipeAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "recipe", "ingredient", "id")
+
+
 admin.site.register(Follow)

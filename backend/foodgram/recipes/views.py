@@ -1,26 +1,16 @@
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import Follow, Ingredient, Recipe, Tag
-from recipes.serializers import (
-    IngredientSerializer,
-    RecipeCreateSerializer,
-    RecipeSerializer,
-    TagSerializer,
-    UserSerializer,
-)
-from rest_framework import mixins, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import (
-    LimitOffsetPagination,
-    PageNumberPagination,
-)
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .filters import RecipeFilter
+from recipes.models import Follow, Ingredient, Recipe, Tag
+from recipes.serializers import (IngredientSerializer, RecipeCreateSerializer,
+                                 RecipeSerializer, TagSerializer, UserSerializer)
 
-# from rest_framework.permissions import IsAuthenticated
-# 😢 😀 💯
+from .filters import IngredientFilter, RecipeFilter
 
 
 class MyPageNumberPagination(PageNumberPagination):
@@ -34,11 +24,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if (
-            self.action == "create"
-            or self.action == "partial_update"
-            or self.action == "update"
-        ):
+        if (self.action == "create" or self.action == "partial_update" or
+                self.action == "update"):
             return RecipeCreateSerializer
         else:
             return RecipeSerializer
@@ -101,9 +88,6 @@ class FollowViewSet(viewsets.GenericViewSet):
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientFilter
     # pagination_class = LimitOffsetPagination
-
-
-# class FavoriteViewSet(viewsets.ModelViewSet):
-#     queryset =
-#     serializer_class =

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+
 from recipes.models import Follow, Ingredient, IngredientInRecipe, Recipe, Tag
 
 
@@ -28,7 +29,8 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ("name", "measurement_unit", "id")  # 5️⃣
+    list_display = ("name", "measurement_unit", "id")
+    search_fields = ("name",)
 
 
 @admin.register(IngredientInRecipe)

@@ -126,6 +126,7 @@ class RecipeInCart(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         verbose_name="Пользователь",
+        related_name="purchases",
     )
     recipe = models.ForeignKey(
         Recipe,

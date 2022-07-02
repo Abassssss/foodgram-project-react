@@ -128,7 +128,10 @@ class RecipeInCart(models.Model):
         verbose_name="Пользователь",
     )
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, verbose_name="Рецепт"
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name="Рецепт",
+        related_name="cart_recipe",
     )
 
 
@@ -139,8 +142,19 @@ class RecipeInFavorite(models.Model):
         verbose_name="Пользователь",
     )
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, verbose_name="Рецепт"
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name="Рецепт",
+        related_name="favorite_recipe",
     )
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                name="unique_favorite",
+                fields=("user", "recipe"),
+            ),
+        )
 
 
 class Follow(models.Model):

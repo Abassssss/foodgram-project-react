@@ -159,6 +159,7 @@ class FollowViewSet(viewsets.GenericViewSet):
 
         paginator = PageNumberPagination()
         paginator.page_size = 10
+        paginator.page_size_query_param = "limit"
 
         page = paginator.paginate_queryset(queryset=queryset, request=request)
         serializer = self.get_serializer(page, many=True)

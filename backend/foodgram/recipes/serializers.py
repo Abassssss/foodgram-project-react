@@ -1,10 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
-
-from .models import (
+from recipes.models import (
     Follow,
     Ingredient,
     IngredientInRecipe,
@@ -13,6 +11,8 @@ from .models import (
     RecipeInFavorite,
     Tag,
 )
+from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 User = get_user_model()
 
@@ -82,39 +82,40 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         tags_data = validated_data.pop("tags")
         ingredients_data = validated_data.pop("ingredientinrecipe_set")
 
-        recipe = Recipe.objects.create(**validated_data)
-        ingredients = []
-        for ingredient in ingredients_data:
-            ingredients.append(
-                IngredientInRecipe(
-                    recipe=recipe,
-                    ingredient=Ingredient.objects.get(id=ingredient["id"]),
-                    amount=ingredient["amount"],
-                )  # 😢
-            )
-        IngredientInRecipe.objects.bulk_create(ingredients)
-        recipe.tags.set(tags_data)
+        with transaction.atomic():
+            recipe = super().create(validated_data)
+            ingredients = []
+            for ingredient in ingredients_data:
+                ingredients.append(
+                    IngredientInRecipe(
+                        recipe=recipe,
+                        ingredient=Ingredient.objects.get(id=ingredient["id"]),
+                        amount=ingredient["amount"],
+                    )
+                )
+            IngredientInRecipe.objects.bulk_create(ingredients)
+            recipe.tags.set(tags_data)
 
         return recipe
 
     def update(self, instance, validated_data):
         tags_data = validated_data.pop("tags")
         ingredients_data = validated_data.pop("ingredientinrecipe_set")
+        with transaction.atomic():
+            instance = super().update(instance, validated_data)
+            IngredientInRecipe.objects.filter(recipe=instance).delete()
 
-        instance = super().update(instance, validated_data)
-        IngredientInRecipe.objects.filter(recipe=instance).delete()
-
-        ingredients = []
-        for ingredient in ingredients_data:
-            ingredients.append(
-                IngredientInRecipe(
-                    recipe=instance,
-                    ingredient=Ingredient.objects.get(id=ingredient["id"]),
-                    amount=ingredient["amount"],
-                )  # 😢
-            )
-        IngredientInRecipe.objects.bulk_create(ingredients)
-        instance.tags.set(tags_data)
+            ingredients = []
+            for ingredient in ingredients_data:
+                ingredients.append(
+                    IngredientInRecipe(
+                        recipe=instance,
+                        ingredient=Ingredient.objects.get(id=ingredient["id"]),
+                        amount=ingredient["amount"],
+                    )
+                )
+            IngredientInRecipe.objects.bulk_create(ingredients)
+            instance.tags.set(tags_data)
 
         return instance
 
@@ -205,7 +206,12 @@ class FollowSerializer(serializers.ModelSerializer):
     )
 
     def validate(self, data):
-        user = self.context["request"].user
+        request = self.context.get("request")
+
+        if request is None:
+            return data
+
+        user = request.user
         following = data["following"]
 
         if user == following:
@@ -216,11 +222,11 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = ("__all__",)
-        validators = [
+        validators = (
             UniqueTogetherValidator(
-                queryset=Follow.objects.all(), fields=["user", "following"]
-            )
-        ]
+                queryset=Follow.objects.all(), fields=("user", "following")
+            ),
+        )
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):

@@ -36,7 +36,7 @@ class RecipeAdmin(admin.ModelAdmin):
 class TagAdmin(admin.ModelAdmin):
     list_display = ("name", "get_color", "slug")
 
-    @admin.display(description="color")
+    @admin.display(description="цвет")
     def get_color(self, tag):
         return format_html(
             '<div><span style="{}"></span>{}</div>',

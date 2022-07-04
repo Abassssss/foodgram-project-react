@@ -14,11 +14,17 @@ class Tag(models.Model):
     )
     slug = models.SlugField("Slug", max_length=200)
 
+    class Meta:
+        verbose_name = "Тэг"
+        verbose_name_plural = "Тэги"
+
     def __str__(self):
         return self.name
 
 
+# TODO
 class IngredientAmount(models.TextChoices):
+
     JAR = ("банка", "банка")
     LOAF = ("батон", "батон")
     BOTTLE = ("бутылка", "бутылка")
@@ -52,11 +58,32 @@ class IngredientAmount(models.TextChoices):
 
 
 class IngredientInRecipe(models.Model):
-    recipe = models.ForeignKey("recipes.Recipe", on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(
-        "recipes.Ingredient", on_delete=models.CASCADE
+    recipe = models.ForeignKey(
+        "recipes.Recipe",
+        verbose_name="Рецепт",
+        help_text="Рецепт",
+        on_delete=models.CASCADE,
     )
-    amount = models.IntegerField("Количество")
+    ingredient = models.ForeignKey(
+        "recipes.Ingredient",
+        on_delete=models.CASCADE,
+        verbose_name="Ингридиент",
+        help_text="Ингридиент",
+    )
+    amount = models.PositiveSmallIntegerField(
+        "Количество",
+        validators=(MinValueValidator(1),),
+    )
+
+    class Meta:
+        verbose_name = "Ингредиент в рецепте"
+        verbose_name_plural = "Ингредиенты в рецептах"
+        constraints = (
+            models.CheckConstraint(
+                name="amount",
+                check=models.Q(amount__gte=1),
+            ),
+        )
 
     def __str__(self):
         return str(self.ingredient)
@@ -72,6 +99,10 @@ class Ingredient(models.Model):
         choices=IngredientAmount.choices,
         max_length=200,
     )
+
+    class Meta:
+        verbose_name = "Ингредиент"
+        verbose_name_plural = "Ингредиенты"
 
     def __str__(self):
         return self.name
@@ -103,21 +134,21 @@ class Recipe(models.Model):
         Tag,
         verbose_name="Тэг",
     )
-    cooking_time = models.PositiveIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         "Время приготовления",
         validators=(MinValueValidator(1),),
         help_text="В минутах",
     )
 
     class Meta:
-        verbose_name = "Recipe"
-        verbose_name_plural = "Recipes"
+        verbose_name = "Рецепт"
+        verbose_name_plural = "Рецепты"
         ordering = ("-pub_date",)
 
         constraints = (
             models.CheckConstraint(
                 name="cooking_time",
-                check=models.Q(name__gte=1),
+                check=models.Q(cooking_time__gte=1),
             ),
         )
 
@@ -147,6 +178,16 @@ class RecipeInCart(models.Model):
         related_name="cart_recipe",
     )
 
+    class Meta:
+        verbose_name = "Рецепт в корзине"
+        verbose_name_plural = "Рецепты в корзинах"
+        constraints = (
+            models.UniqueConstraint(
+                name="unique_cart_item",
+                fields=("user", "recipe"),
+            ),
+        )
+
 
 class RecipeInFavorite(models.Model):
     user = models.ForeignKey(
@@ -162,6 +203,8 @@ class RecipeInFavorite(models.Model):
     )
 
     class Meta:
+        verbose_name = "Рецепт в избранном"
+        verbose_name_plural = "Рецепты в избранном"
         constraints = (
             models.UniqueConstraint(
                 name="unique_favorite",
@@ -185,6 +228,8 @@ class Follow(models.Model):
     )
 
     class Meta:
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
         constraints = (
             models.UniqueConstraint(
                 name="unique_follow",

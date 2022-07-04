@@ -1,6 +1,8 @@
 from datetime import datetime
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import (
@@ -79,11 +81,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, **kwargs):
         user = request.user
         recipe = self.get_object()
-        _, is_created = RecipeInCart.objects.get_or_create(
+        _, created = RecipeInCart.objects.get_or_create(
             user=user, recipe=recipe
         )
 
-        if not is_created:
+        if not created:
             data = {"message": "This recipe already added"}
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
@@ -109,7 +111,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ingredients = IngredientInRecipe.objects.filter(
             recipe__in=[cart_item.recipe for cart_item in shopping_cart]
         ).select_related("ingredient")
-
+        # TODO: calculate in SQL
         shopping_dict = {}
         for cart_item in shopping_cart:
             recipe = cart_item.recipe
@@ -124,18 +126,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
                         "amount": 0,
                         "measurement_unit": measurement_unit,
                     }
+                # IngredientInRecipe.objects.aggregate(Sum("amount"))
                 shopping_dict[name]["amount"] += ingredient.amount
+
         shopping_list = []
         for i, item in enumerate(shopping_dict):
             shopping_list.append(
-                f"{i + 1}. {item} - {shopping_dict[item]['amount']}{shopping_dict[item]['measurement_unit']}\n"
+                f"{i + 1}. {item} - {shopping_dict[item]['amount']}"
+                f"{shopping_dict[item]['measurement_unit']}\n"
             )
         shopping_list.append(f"\nfoodgram, {datetime.now().year}")
+
         response = HttpResponse(shopping_list)
-        response["Content-Type"] = "text/plain"
+        type = "Content-Type"
+        response[type] = "text/plain"
         response[
             "Content-Disposition"
-        ] = 'attachment; filename="shopping_list.txt"'
+        ] = f'attachment; filename="{settings.SHOPPING_LIST_FILE_NAME}"'
+
         return response
 
 

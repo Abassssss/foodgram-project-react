@@ -64,7 +64,7 @@ class Command(BaseCommand):
 
     def _create_recipes(self, users, tags):
         random.seed(420)
-
+        # TODO: add ingredients.
         recipes_data = [
             {
                 "name": "хлеб",

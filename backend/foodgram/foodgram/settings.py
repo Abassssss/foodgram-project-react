@@ -26,7 +26,14 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+def get_debug():
+    debug = os.getenv("DEBUG")
+    if debug is None:
+        return False
+    return debug.lower() == "true"
+
+
+DEBUG = get_debug()
 
 ALLOWED_HOSTS = ["*"]
 
@@ -40,7 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "rest_framework.authtoken",  # 🦗
+    "rest_framework.authtoken",
     "djoser",
     "django_filters",
     "recipes",
@@ -88,6 +95,21 @@ DATABASES = {
     }
 }
 
+# Database
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": os.getenv(
+#             "DB_ENGINE", default="django.db.backends.postgresql"
+#         ),
+#         "NAME": os.getenv("DB_NAME", default=None),
+#         "USER": os.getenv("POSTGRES_USER", default=None),
+#         "PASSWORD": os.getenv("POSTGRES_PASSWORD", default=None),
+#         "HOST": os.getenv("DB_HOST", default=None),
+#         "PORT": os.getenv("DB_PORT", default=None),
+#     }
+# }
+
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
@@ -109,7 +131,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ru-ru"
 
 TIME_ZONE = "UTC"
 
@@ -135,7 +157,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        # "rest_framework.authentication.SessionAuthentication",  # 👈 👀
+        # "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
@@ -151,6 +173,7 @@ DJOSER = {
     },
     "PERMISSIONS": {
         "user": ["rest_framework.permissions.IsAuthenticatedOrReadOnly"]
-    }
-    # "PERMISSIONS": {"token_create": ["rest_framework.permissions.AllowAny"]},
+    },
 }
+
+SHOPPING_LIST_FILE_NAME = "shopping_list.txt"

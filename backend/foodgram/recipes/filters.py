@@ -4,7 +4,7 @@ from .models import Ingredient, Recipe
 
 
 class CharInFilter(filters.BaseInFilter, filters.CharFilter):
-    ...
+    pass
 
 
 class RecipeFilter(filters.FilterSet):

@@ -1,6 +1,10 @@
+import os
+
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 
 class Tag(models.Model):
@@ -119,6 +123,14 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.name
+
+
+@receiver(post_delete, sender=Recipe)
+def handle_recipe_post_delete(instance, **kwargs):
+    try:
+        os.remove(instance.image.path)
+    except FileNotFoundError:
+        pass
 
 
 class RecipeInCart(models.Model):

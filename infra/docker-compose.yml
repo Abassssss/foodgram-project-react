@@ -7,7 +7,7 @@ services:
     env_file:
       - ./.env
   backend:
-    image: abassss/foodgram:latest
+    image: abassss/foodgram_backend:latest
     restart: always
     expose:
       - 8000

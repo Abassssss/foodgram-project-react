@@ -2,17 +2,11 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (
-    Follow,
-    Ingredient,
-    IngredientInRecipe,
-    Recipe,
-    RecipeInCart,
-    RecipeInFavorite,
-    Tag,
-)
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
+
+from recipes.models import (Follow, Ingredient, IngredientInRecipe, Recipe,
+                            RecipeInCart, RecipeInFavorite, Tag)
 
 User = get_user_model()
 
@@ -98,6 +92,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
         return recipe
 
+    # TODO: fix this, doesn't work.
     def update(self, instance, validated_data):
         tags_data = validated_data.pop("tags")
         ingredients_data = validated_data.pop("ingredientinrecipe_set")

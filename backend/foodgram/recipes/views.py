@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db.models import Sum
+from django.db.models import F, Sum
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import (
@@ -16,7 +16,6 @@ from recipes.models import (
 )
 from recipes.serializers import (
     IngredientSerializer,
-    RecipeCreateSerializer,
     RecipeSerializer,
     TagSerializer,
     UserSerializer,
@@ -58,7 +57,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
         if not is_created:
-            data = {"message": "You have already liked this recipe"}
+            data = {"message": "Вы уже добавили этот рецепт."}
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({}, status=status.HTTP_201_CREATED)
@@ -107,33 +106,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False)
     def download_shopping_cart(self, request):
-        shopping_cart = request.user.purchases.all()
-        ingredients = IngredientInRecipe.objects.filter(
-            recipe__in=[cart_item.recipe for cart_item in shopping_cart]
-        ).select_related("ingredient")
-        # TODO: calculate in SQL
-        shopping_dict = {}
-        for cart_item in shopping_cart:
-            recipe = cart_item.recipe
-            recipe_ingredients = [
-                ing for ing in ingredients if ing.recipe == recipe
-            ]
-            for ingredient in recipe_ingredients:
-                name = ingredient.ingredient.name
-                measurement_unit = ingredient.ingredient.measurement_unit
-                if name not in shopping_dict:
-                    shopping_dict[name] = {
-                        "amount": 0,
-                        "measurement_unit": measurement_unit,
-                    }
-                # IngredientInRecipe.objects.aggregate(Sum("amount"))
-                shopping_dict[name]["amount"] += ingredient.amount
+        ingredients = (
+            IngredientInRecipe.objects.filter(
+                recipe__in=(request.user.purchases.values("recipe"))
+            )
+            .values(
+                name=F("ingredient__name"),
+                measurement_unit=F("ingredient__measurement_unit"),
+            )
+            .annotate(amount=Sum("amount"))
+        )
 
         shopping_list = []
-        for i, item in enumerate(shopping_dict):
+        for i, ingredient in enumerate(ingredients):
             shopping_list.append(
-                f"{i + 1}. {item} - {shopping_dict[item]['amount']}"
-                f"{shopping_dict[item]['measurement_unit']}\n"
+                f"{i + 1}. {ingredient['name']} - {ingredient['amount']} "
+                f"{ingredient['measurement_unit']}\n"
             )
         shopping_list.append(f"\nfoodgram, {datetime.now().year}")
 

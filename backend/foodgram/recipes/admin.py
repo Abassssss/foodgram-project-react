@@ -40,7 +40,10 @@ class TagAdmin(admin.ModelAdmin):
     def get_color(self, tag):
         return format_html(
             '<div><span style="{}"></span>{}</div>',
-            f"background-color:{tag.color};display:inline-block;width:20px;height:12px;border-radius:3px;margin:0 5px;",
+            (
+                f"background-color:{tag.color};display:inline-block;width:20px"
+                ";height:12px;border-radius:3px;margin:0 5px;"
+            ),
             tag.color,
         )
 

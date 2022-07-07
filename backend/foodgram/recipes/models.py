@@ -22,7 +22,7 @@ class Tag(models.Model):
         return self.name
 
 
-# TODO
+# TODO create a separate model.
 class IngredientAmount(models.TextChoices):
 
     JAR = ("банка", "банка")
@@ -60,15 +60,13 @@ class IngredientAmount(models.TextChoices):
 class IngredientInRecipe(models.Model):
     recipe = models.ForeignKey(
         "recipes.Recipe",
-        verbose_name="Рецепт",
-        help_text="Рецепт",
+        verbose_name="Ингредиенты",
         on_delete=models.CASCADE,
     )
     ingredient = models.ForeignKey(
         "recipes.Ingredient",
         on_delete=models.CASCADE,
-        verbose_name="Ингридиент",
-        help_text="Ингридиент",
+        verbose_name="Рецепты",
     )
     amount = models.PositiveSmallIntegerField(
         "Количество",
@@ -124,15 +122,18 @@ class Recipe(models.Model):
         "Картинка",
         upload_to="recipes/",
         blank=True,
-        help_text="Загрузите картинку",
+        help_text="Загрузите изображение",
     )
     text = models.TextField("Описание", help_text="Введите описание рецепта")
     ingredients = models.ManyToManyField(
-        Ingredient, through=IngredientInRecipe
+        Ingredient,
+        through=IngredientInRecipe,
+        through_fields=("recipe", "ingredient"),
+        verbose_name="Ингредиенты",
+        help_text="Выберите ингредиенты",
     )
     tags = models.ManyToManyField(
-        Tag,
-        verbose_name="Тэг",
+        Tag, verbose_name="Теги", help_text="Выберите теги"
     )
     cooking_time = models.PositiveSmallIntegerField(
         "Время приготовления",
@@ -168,13 +169,14 @@ class RecipeInCart(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        verbose_name="Пользователь",
+        verbose_name="Список покупок",
+        help_text="Список покупок пользователя",
         related_name="purchases",
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        verbose_name="Рецепт",
+        verbose_name="В списке у пользователей",
         related_name="cart_recipe",
     )
 
@@ -193,12 +195,14 @@ class RecipeInFavorite(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        verbose_name="Пользователь",
+        verbose_name="Избранные рецепты",
+        help_text="Избранные рецепты пользователя",
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        verbose_name="Рецепт",
+        verbose_name="Избранные у пользователей",
+        help_text="Избранные рецепты у пользователей",
         related_name="favorite_recipe",
     )
 

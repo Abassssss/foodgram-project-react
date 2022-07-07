@@ -92,43 +92,43 @@ WSGI_APPLICATION = "foodgram.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
 
 # Database
 # TODO: configure postgres.
-DATABASES = {
-    "default": {
-        "ENGINE": os.getenv(
-            "DB_ENGINE", default="django.db.backends.postgresql"
-        ),
-        "NAME": os.getenv("DB_NAME", default=None),
-        "USER": os.getenv("POSTGRES_USER", default=None),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default=None),
-        "HOST": os.getenv("DB_HOST", default=None),
-        "PORT": os.getenv("DB_PORT", default=None),
-    }
-}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": os.getenv(
+#             "DB_ENGINE", default="django.db.backends.postgresql"
+#         ),
+#         "NAME": os.getenv("DB_NAME", default=None),
+#         "USER": os.getenv("POSTGRES_USER", default=None),
+#         "PASSWORD": os.getenv("POSTGRES_PASSWORD", default=None),
+#         "HOST": os.getenv("DB_HOST", default=None),
+#         "PORT": os.getenv("DB_PORT", default=None),
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",  # noqa
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",  # noqa
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",  # noqa
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",  # noqa
     },
 ]
 

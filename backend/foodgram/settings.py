@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-load_dotenv(dotenv_path=BASE_DIR / ".." / ".." / "infra" / ".env")
+load_dotenv(dotenv_path=BASE_DIR / ".." / "infra" / ".env")
 # SECRET_KEY = os.getenv("SECRET_KEY")
 SECRET_KEY = (
     "django-insecure-aul-%bt#63^!-)(07)s$7o@ifbg_+hq)qn+km_do!4wthx2)-d"
@@ -70,7 +70,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "foodgram.urls"
 
-DOCS_DIR = BASE_DIR / ".." / ".." / "docs"  # custom
+DOCS_DIR = BASE_DIR / ".." / "docs"  # custom
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",

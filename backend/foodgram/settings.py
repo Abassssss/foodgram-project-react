@@ -25,6 +25,8 @@ load_dotenv(dotenv_path=BASE_DIR / ".." / "infra" / ".env")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
+
+
 def get_debug():
     debug = os.getenv("DEBUG")
     if debug is None:

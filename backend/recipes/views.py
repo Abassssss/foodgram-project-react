@@ -16,6 +16,7 @@ from recipes.models import (
 )
 from recipes.serializers import (
     IngredientSerializer,
+    RecipeCreateSerializer,
     RecipeSerializer,
     TagSerializer,
     UserSerializer,
@@ -40,10 +41,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        # if self.action in ("create", "update", "partial_update"):
-        #     return RecipeCreateSerializer # NEEDS A COMMENT
-        # else:
-        return RecipeSerializer
+        if self.action in ("list", "retrieve"):
+            return RecipeSerializer
+        return RecipeCreateSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

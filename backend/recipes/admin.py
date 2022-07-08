@@ -1,14 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from recipes.models import (
-    Follow,
-    Ingredient,
-    IngredientInRecipe,
-    Recipe,
-    RecipeInCart,
-    RecipeInFavorite,
-    Tag,
-)
+
+from recipes.models import (Follow, Ingredient, IngredientInRecipe, Recipe,
+                            RecipeInCart, RecipeInFavorite, Tag)
 
 
 class IngredientInRecipeInline(admin.TabularInline):

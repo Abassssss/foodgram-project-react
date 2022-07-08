@@ -16,7 +16,6 @@ from recipes.models import (
 )
 from recipes.serializers import (
     IngredientSerializer,
-    RecipeCreateSerializer,
     RecipeSerializer,
     TagSerializer,
     UserSerializer,
@@ -39,11 +38,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = MyPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-
-    def get_serializer_class(self):
-        if self.action in ("list", "retrieve"):
-            return RecipeSerializer
-        return RecipeCreateSerializer
+    serializer_class = RecipeSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

@@ -6,29 +6,34 @@ from operator import itemgetter
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
-
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag
 
 User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = "Seeds the database"
+    help = "Seeds the database with test data"
 
     def handle(self, *args, **options):
-        self._create_ingredients()
+        ingredients = self._create_ingredients()
         tags = self._create_tags()
         users = self._create_users()
-        self._create_recipes(users, tags)
+        self._create_recipes(users, tags, ingredients)
         msg = "Successfully seeded the database"
         self.stdout.write(self.style.SUCCESS(msg))
 
     def _create_ingredients(self):
-        path = settings.BASE_DIR / ".." / ".." / "data" / "ingredients.json"
+        path = settings.BASE_DIR / ".." / "data" / "ingredients.json"
         with open(path, encoding="utf-8") as f:
-            ingredients = json.loads(f.read())
-            Ingredient.objects.bulk_create(
-                Ingredient(**i) for i in ingredients
+            ingredients_data = json.loads(f.read())
+            return list(
+                map(
+                    itemgetter(0),
+                    [
+                        Ingredient.objects.get_or_create(**data)
+                        for data in ingredients_data
+                    ],
+                )
             )
 
     def _create_tags(self):
@@ -38,11 +43,12 @@ class Command(BaseCommand):
             {"name": "Ужин", "color": "#8B00FF", "slug": "dinner"},
         ]
 
-        map_obj = map(
-            itemgetter(0),
-            [Tag.objects.get_or_create(**data) for data in tags_data],
+        return list(
+            map(
+                itemgetter(0),
+                [Tag.objects.get_or_create(**data) for data in tags_data],
+            )
         )
-        return list(map_obj)
 
     def _create_users(self):
         users = []
@@ -63,9 +69,8 @@ class Command(BaseCommand):
 
         return users
 
-    def _create_recipes(self, users, tags):
+    def _create_recipes(self, users, tags, ingredients):
         random.seed(420)
-        # TODO: add ingredients.
         recipes_data = [
             {
                 "name": "хлеб",
@@ -125,9 +130,19 @@ class Command(BaseCommand):
             )
             if created:
                 shutil.copy(
-                    settings.BASE_DIR / ".." / ".." / "data" / image,
+                    settings.BASE_DIR / ".." / "data" / image,
                     settings.MEDIA_ROOT / "recipes" / image,
                 )
                 recipe.tags.set(
                     random.sample(tags, random.randrange(len(tags)))
+                )
+                IngredientInRecipe.objects.bulk_create(
+                    IngredientInRecipe(
+                        recipe=recipe,
+                        ingredient=ingredient,
+                        amount=random.randrange(1, 500),
+                    )
+                    for ingredient in random.sample(
+                        ingredients, random.randrange(7)
+                    )
                 )

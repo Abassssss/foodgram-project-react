@@ -22,41 +22,6 @@ class Tag(models.Model):
         return self.name
 
 
-# TODO create a separate model.
-class IngredientAmount(models.TextChoices):
-
-    JAR = ("банка", "банка")
-    LOAF = ("батон", "батон")
-    BOTTLE = ("бутылка", "бутылка")
-    BRANCH = ("веточка", "веточка")
-    GR = ("г", "г")
-    HANDFUL = ("горсть", "горсть")
-    SLICE = ("долька", "долька")
-    STAR = ("звездочка", "звездочка")
-    ZUB4IK = ("зубчик", "зубчик")
-    DROP = ("капля", "капля")
-    KG = ("кг", "кг")
-    CHUNK = ("кусок", "кусок")
-    LITER = ("л", "л")
-    LEAF = ("лист", "лист")
-    ML = ("мл", "мл")
-    BAG = ("пакет", "пакет")
-    BAG2 = ("пакетик", "пакетик")
-    PACKET = ("пачка", "пачка")
-    LAYER = ("пласт", "пласт")
-    BYTASTE = ("по вкусу", "по вкусу")
-    PU4OK = ("пучок", "пучок")
-    TABLE_SPOON = ("ст. л.", "ст. л.")
-    GLASS = ("стакан", "стакан")
-    STEM = ("стебель", "стебель")
-    POD = ("стручок", "стручок")
-    CARCASS = ("тушка", "тушка")
-    PACKAGE = ("упаковка", "упаковка")
-    TEA_SPOON = ("ч. л.", "ч. л.")
-    PIECE = ("шт.", "шт.")
-    PINCH = ("щепотка", "щепотка")
-
-
 class IngredientInRecipe(models.Model):
     recipe = models.ForeignKey(
         "recipes.Recipe",
@@ -94,7 +59,6 @@ class Ingredient(models.Model):
     measurement_unit = models.CharField(
         "Единица измерения",
         help_text="Введите единицу измерения",
-        choices=IngredientAmount.choices,
         max_length=200,
     )
 

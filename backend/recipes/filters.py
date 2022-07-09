@@ -1,6 +1,6 @@
 import django_filters as filters
 
-from .models import Ingredient, Recipe
+from recipes.models import Ingredient, Recipe
 
 
 class CharInFilter(filters.BaseInFilter, filters.CharFilter):

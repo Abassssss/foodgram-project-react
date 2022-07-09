@@ -6,6 +6,8 @@ from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
+from foodgram.settings import MIN_AMOUNT, MIN_COOK_TIME
+
 
 class Tag(models.Model):
     name = models.CharField("Название", max_length=200)
@@ -35,18 +37,12 @@ class IngredientInRecipe(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         "Количество",
-        validators=(MinValueValidator(1),),
+        validators=(MinValueValidator(MIN_AMOUNT),),
     )
 
     class Meta:
         verbose_name = "Ингредиент в рецепте"
         verbose_name_plural = "Ингредиенты в рецептах"
-        constraints = (
-            models.CheckConstraint(
-                name="amount",
-                check=models.Q(amount__gte=1),
-            ),
-        )
 
     def __str__(self):
         return str(self.ingredient)
@@ -101,7 +97,7 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField(
         "Время приготовления",
-        validators=(MinValueValidator(1),),
+        validators=(MinValueValidator(MIN_COOK_TIME),),
         help_text="В минутах",
     )
 
@@ -109,13 +105,6 @@ class Recipe(models.Model):
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
         ordering = ("-pub_date",)
-
-        constraints = (
-            models.CheckConstraint(
-                name="cooking_time",
-                check=models.Q(cooking_time__gte=1),
-            ),
-        )
 
     def __str__(self):
         return self.name

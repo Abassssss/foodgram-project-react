@@ -11,12 +11,11 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from recipes.filters import IngredientFilter, RecipeFilter
 from recipes.models import (Follow, Ingredient, IngredientInRecipe, Recipe,
                             RecipeInCart, RecipeInFavorite, Tag)
 from recipes.serializers import (IngredientSerializer, RecipeSerializer,
                                  TagSerializer, UserSerializer)
-
-from .filters import IngredientFilter, RecipeFilter
 
 
 class MyPageNumberPagination(PageNumberPagination):
@@ -33,7 +32,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    @action(detail=True, methods=["POST"])
+    @action(detail=True, methods=("POST",))
     def favorite(self, request, **kwargs):
         user = request.user
         recipe = self.get_object()
@@ -61,7 +60,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=["POST"])
+    @action(detail=True, methods=("POST",))
     def shopping_cart(self, request, **kwargs):
         user = request.user
         recipe = self.get_object()
@@ -147,7 +146,7 @@ class FollowViewSet(viewsets.GenericViewSet):
 
         return paginator.get_paginated_response(serializer.data)
 
-    @action(detail=True, methods=["POST"])
+    @action(detail=True, methods=("POST",))
     def subscribe(self, request, **kwargs):
         user = request.user
         author = self.get_object()

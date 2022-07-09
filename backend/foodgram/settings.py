@@ -19,22 +19,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
-
+# ".." / "infra" /
 # SECURITY WARNING: keep the secret key used in production secret!
 load_dotenv(dotenv_path=BASE_DIR / ".." / "infra" / ".env")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-
-
-def get_debug():
-    debug = os.getenv("DEBUG")
-    if debug is None:
-        return False
-    return debug.lower() == "true"
-
-
-DEBUG = get_debug()
+DEBUG = os.getenv("DEBUG") == "TRUE"
 
 ALLOWED_HOSTS = ["*"]
 
@@ -72,7 +63,7 @@ DOCS_DIR = BASE_DIR / ".." / "docs"  # custom
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [DOCS_DIR],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -90,28 +81,18 @@ WSGI_APPLICATION = "foodgram.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": os.getenv(
+            "DB_ENGINE", default="django.db.backends.postgresql"
+        ),
+        "NAME": os.getenv("DB_NAME", default=None),
+        "USER": os.getenv("POSTGRES_USER", default=None),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default=None),
+        "HOST": os.getenv("DB_HOST", default=None),
+        "PORT": os.getenv("DB_PORT", default=None),
     }
 }
-
-# Подключу postgres при деплое 🙂
-
-# DATABASES = {
-#     "default": {
-#         "ENGINE": os.getenv(
-#             "DB_ENGINE", default="django.db.backends.postgresql"
-#         ),
-#         "NAME": os.getenv("DB_NAME", default=None),
-#         "USER": os.getenv("POSTGRES_USER", default=None),
-#         "PASSWORD": os.getenv("POSTGRES_PASSWORD", default=None),
-#         "HOST": os.getenv("DB_HOST", default=None),
-#         "PORT": os.getenv("DB_PORT", default=None),
-#     }
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -145,13 +126,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 
-STATICFILES_DIRS = [DOCS_DIR]
+STATICFILES_DIRS = os.path.join(BASE_DIR, "static")
 
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -180,3 +161,5 @@ DJOSER = {
 }
 
 SHOPPING_LIST_FILE_NAME = "shopping_list.txt"
+MIN_AMOUNT = 1
+MIN_COOK_TIME = 1

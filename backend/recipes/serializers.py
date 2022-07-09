@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import transaction
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
+from foodgram.settings import MIN_AMOUNT
 from recipes.models import (Follow, Ingredient, IngredientInRecipe, Recipe,
                             RecipeInCart, RecipeInFavorite, Tag)
 
@@ -20,8 +22,8 @@ class TagSerializer(serializers.ModelSerializer):
 class IngredientSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     amount = serializers.IntegerField(
-        write_only=True
-    )  # TODO: add validator for min and max
+        write_only=True, validators=(MinValueValidator(MIN_AMOUNT),)
+    )
 
     class Meta:
         model = Ingredient

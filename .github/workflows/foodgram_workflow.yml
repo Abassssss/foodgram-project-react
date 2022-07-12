@@ -72,7 +72,7 @@ jobs:
           sudo docker pull abassss/foodgram_backend:latest
           sudo docker pull abassss/foodgram_frontend:latest
           sudo docker-compose stop
-          sudo docker-compose rm backend
+          sudo docker-compose rm abas_backend_1
           rm .env
           touch .env
           echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
@@ -83,8 +83,8 @@ jobs:
           echo DB_PORT=${{ secrets.DB_PORT }} >> .env
           echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
           sudo docker-compose up -d
-          sudo docker-compose exec -T abas_backend_1 python3 manage.py migrate
-          sudo docker-compose exec -T abas_backend_1 python3 manage.py collectstatic --no-input
+          sudo docker-compose exec -T abas_backend_1 python manage.py migrate
+          sudo docker-compose exec -T abas_backend_1 python manage.py collectstatic --no-input
   
   
   send_message:

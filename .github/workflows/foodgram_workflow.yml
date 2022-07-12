@@ -72,7 +72,7 @@ jobs:
           sudo docker pull abassss/foodgram_backend:latest
           sudo docker pull abassss/foodgram_frontend:latest
           sudo docker-compose stop
-          sudo docker-compose rm abas_backend_1
+          sudo docker-compose rm backend
           rm .env
           touch .env
           echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env

@@ -43,6 +43,13 @@ class IngredientInRecipe(models.Model):
     class Meta:
         verbose_name = "Ингредиент в рецепте"
         verbose_name_plural = "Ингредиенты в рецептах"
+        
+        constraints = (
+            models.CheckConstraint(
+                name="amount",
+                check=models.Q(amount__gte=1),
+            ),
+        )
 
     def __str__(self):
         return str(self.ingredient)
@@ -105,6 +112,13 @@ class Recipe(models.Model):
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
         ordering = ("-pub_date",)
+
+        constraints = (
+            models.CheckConstraint(
+                name="cooking_time",
+                check=models.Q(cooking_time__gte=1),
+            ),
+        )
 
     def __str__(self):
         return self.name

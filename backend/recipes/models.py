@@ -5,7 +5,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
-
 from foodgram.settings import MIN_AMOUNT, MIN_COOK_TIME
 
 

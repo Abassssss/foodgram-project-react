@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import shutil
 from operator import itemgetter
@@ -6,7 +7,6 @@ from operator import itemgetter
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
-
 from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag
 
 User = get_user_model()
@@ -24,7 +24,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(msg))
 
     def _create_ingredients(self):
-        path = settings.BASE_DIR / ".." / "data" / "ingredients.json"
+        path = settings.BASE_DIR / "data" / "ingredients.json"
         with open(path, encoding="utf-8") as f:
             ingredients_data = json.loads(f.read())
             return list(
@@ -129,10 +129,12 @@ class Command(BaseCommand):
             recipe, created = Recipe.objects.get_or_create(
                 **data, image=f"recipes/{image}"
             )
+            src_path = os.path.join(settings.BASE_DIR, f"data/{image}")
+            dest_path = os.path.join(settings.BASE_DIR, f"static/{image}")
             if created:
                 shutil.copy(
-                    settings.BASE_DIR / ".." / "data" / image,
-                    settings.MEDIA_ROOT / "recipes" / image,
+                    src_path,
+                    dest_path,
                 )
                 recipe.tags.set(
                     random.sample(tags, random.randrange(len(tags)))

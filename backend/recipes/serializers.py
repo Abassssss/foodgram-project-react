@@ -3,12 +3,11 @@ from django.core.validators import MinValueValidator
 from django.db import transaction
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
-
 from foodgram.settings import MIN_AMOUNT
 from recipes.models import (Follow, Ingredient, IngredientInRecipe, Recipe,
                             RecipeInCart, RecipeInFavorite, Tag)
+from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 User = get_user_model()
 

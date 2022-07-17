@@ -3,11 +3,12 @@ from django.core.validators import MinValueValidator
 from django.db import transaction
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
+
 from foodgram.settings import MIN_AMOUNT
 from recipes.models import (Follow, Ingredient, IngredientInRecipe, Recipe,
                             RecipeInCart, RecipeInFavorite, Tag)
-from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
 User = get_user_model()
 
@@ -38,7 +39,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(source="ingredient.id")
     name = serializers.CharField(source="ingredient.name", read_only=True)
     measurement_unit = serializers.CharField(
         source="ingredient.measurement_unit", read_only=True
@@ -113,6 +114,12 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         return representation
 
+    def validate_tags(self, tags):
+        if len(tags) == 0:
+            msg = "Добавьте хотя бы один тег"
+            raise serializers.ValidationError(msg)
+        return tags
+
     def create(self, validated_data):
         tags = validated_data.pop("tags")
         ingredients_data = validated_data.pop("ingredients")
@@ -142,13 +149,13 @@ class RecipeSerializer(serializers.ModelSerializer):
             instance.tags.set(tags)
 
             IngredientInRecipe.objects.filter(recipe=instance).delete()
-
             ingredients = []
             for ingredient in ingredients_data:
+                ing = Ingredient.objects.get(id=ingredient["id"])
                 ingredients.append(
                     IngredientInRecipe(
                         recipe=instance,
-                        ingredient=Ingredient.objects.get(id=ingredient["id"]),
+                        ingredient=ing,
                         amount=ingredient["amount"],
                     )
                 )

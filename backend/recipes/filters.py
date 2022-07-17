@@ -1,4 +1,5 @@
 import django_filters as filters
+
 from recipes.models import Ingredient, Recipe
 
 
@@ -7,7 +8,7 @@ class CharInFilter(filters.BaseInFilter, filters.CharFilter):
 
 
 class RecipeFilter(filters.FilterSet):
-    tags = CharInFilter(field_name="tags__slug", lookup_expr="in")
+    tags = filters.AllValuesMultipleFilter(field_name="tags__slug")
     is_favorited = filters.NumberFilter(method="get_is_favorited")
     is_in_shopping_cart = filters.NumberFilter(
         method="get_is_in_shopping_cart"

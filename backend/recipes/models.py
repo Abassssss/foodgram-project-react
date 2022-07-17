@@ -5,6 +5,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+
 from foodgram.settings import MIN_AMOUNT, MIN_COOK_TIME
 
 
@@ -42,7 +43,7 @@ class IngredientInRecipe(models.Model):
     class Meta:
         verbose_name = "Ингредиент в рецепте"
         verbose_name_plural = "Ингредиенты в рецептах"
-        
+
         constraints = (
             models.CheckConstraint(
                 name="amount",
@@ -87,7 +88,6 @@ class Recipe(models.Model):
     image = models.ImageField(
         "Картинка",
         upload_to="recipes/",
-        blank=True,
         help_text="Загрузите изображение",
     )
     text = models.TextField("Описание", help_text="Введите описание рецепта")
@@ -156,6 +156,9 @@ class RecipeInCart(models.Model):
             ),
         )
 
+    def __str__(self):
+        return f'{self.user} добавил "{self.recipe}"'
+
 
 class RecipeInFavorite(models.Model):
     user = models.ForeignKey(
@@ -181,6 +184,9 @@ class RecipeInFavorite(models.Model):
                 fields=("user", "recipe"),
             ),
         )
+
+    def __str__(self):
+        return f'{self.user} добавил "{self.recipe}"'
 
 
 class Follow(models.Model):

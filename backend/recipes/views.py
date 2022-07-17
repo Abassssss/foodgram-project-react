@@ -5,16 +5,18 @@ from django.contrib.auth import get_user_model
 from django.db.models import F, Sum
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from recipes.filters import IngredientFilter, RecipeFilter
-from recipes.models import (Follow, Ingredient, IngredientInRecipe, Recipe,
-                            RecipeInCart, RecipeInFavorite, Tag)
-from recipes.serializers import (IngredientSerializer, RecipeSerializer,
-                                 TagSerializer, UserSerializer)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from recipes.filters import IngredientFilter, RecipeFilter
+from recipes.models import (Follow, Ingredient, IngredientInRecipe, Recipe,
+                            RecipeInCart, RecipeInFavorite, Tag)
+from recipes.permissions import IsAuthorOrReadOnly
+from recipes.serializers import (IngredientSerializer, RecipeSerializer,
+                                 TagSerializer, UserSerializer)
 
 
 class MyPageNumberPagination(PageNumberPagination):
@@ -27,6 +29,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     serializer_class = RecipeSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

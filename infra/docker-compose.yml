@@ -2,6 +2,7 @@ version: '3.8'
 services:
   db:
     image: postgres:13.0-alpine
+    restart: always 
     ports:
       - "5432:5432"
     volumes:
@@ -26,6 +27,7 @@ services:
       - ../frontend/result_build/:/app/build/
   nginx:
     image: nginx:1.21.3-alpine
+    restart: always 
     ports:
       - "80:80"
     volumes:
